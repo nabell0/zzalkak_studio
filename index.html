@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zzalkak Studio — 밈/카드 이미지 편집기</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <p class="brand">Zzalkak Studio</p>
+      <p class="tagline">밈 · 카드 · SNS용 이미지 편집기</p>
+    </header>
+
+    <main class="workspace">
+      <section class="panel panel-tools" aria-label="편집 도구">
+        <h1 class="panel-title">편집 도구</h1>
+
+        <div id="upload-error" class="upload-error" role="alert" hidden>
+          PNG 또는 JPEG 파일만 업로드 가능합니다
+        </div>
+
+        <fieldset class="tool-group">
+          <legend>이미지</legend>
+          <label class="file-label" for="image-input">
+            <span class="file-label-text">이미지 선택</span>
+            <span class="file-hint">PNG, JPEG만 지원</span>
+          </label>
+          <input
+            id="image-input"
+            type="file"
+            accept="image/png,image/jpeg,.png,.jpg,.jpeg"
+          />
+          <p id="file-name" class="file-name">선택된 파일 없음</p>
+        </fieldset>
+
+        <fieldset class="tool-group">
+          <legend>화면비</legend>
+          <div class="ratio-group" role="group" aria-label="화면비 선택">
+            <button type="button" class="ratio-btn is-active" data-ratio="1:1" aria-pressed="true">1:1</button>
+            <button type="button" class="ratio-btn" data-ratio="4:5" aria-pressed="false">4:5</button>
+            <button type="button" class="ratio-btn" data-ratio="9:16" aria-pressed="false">9:16</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="tool-group">
+          <legend>문구</legend>
+          <label class="field" for="text-input">
+            <span>텍스트</span>
+            <textarea
+              id="text-input"
+              rows="3"
+              placeholder="카드에 올릴 문구를 입력하세요 (한글·영문·이모지 지원)"
+              maxlength="8000"
+            ></textarea>
+          </label>
+        </fieldset>
+
+        <fieldset class="tool-group">
+          <legend>위치</legend>
+          <label class="field" for="pos-x">
+            <span>X <output id="pos-x-value" for="pos-x">50</output>%</span>
+            <input id="pos-x" type="range" min="0" max="100" value="50" step="1" />
+          </label>
+          <label class="field" for="pos-y">
+            <span>Y <output id="pos-y-value" for="pos-y">50</output>%</span>
+            <input id="pos-y" type="range" min="0" max="100" value="50" step="1" />
+          </label>
+        </fieldset>
+
+        <fieldset class="tool-group">
+          <legend>크기 · 색상</legend>
+          <label class="field" for="font-size">
+            <span>폰트 크기 <output id="font-size-value" for="font-size">48</output>px</span>
+            <input id="font-size" type="range" min="12" max="120" value="48" step="1" />
+          </label>
+          <label class="field field-inline" for="text-color">
+            <span>글자 색상</span>
+            <input id="text-color" type="color" value="#ffffff" />
+          </label>
+        </fieldset>
+
+        <fieldset class="tool-group">
+          <legend>출처 · 라이선스</legend>
+          <label class="field" for="attribution-input">
+            <span>이미지 출처 / 라이선스</span>
+            <input
+              id="attribution-input"
+              type="text"
+              maxlength="200"
+              placeholder="예: Photo by … / Unsplash License"
+            />
+          </label>
+          <p class="field-hint">다운로드 시 우측 하단에 작게 표기됩니다. 캔버스 재인코딩으로 EXIF(GPS 등)는 제거됩니다.</p>
+        </fieldset>
+
+        <fieldset class="tool-group">
+          <legend>다운로드</legend>
+          <label class="field" for="download-format">
+            <span>파일 형식</span>
+            <select id="download-format">
+              <option value="image/png">PNG</option>
+              <option value="image/jpeg">JPEG</option>
+            </select>
+          </label>
+          <button type="button" id="download-btn" class="download-btn">이미지 다운로드</button>
+        </fieldset>
+
+        <fieldset class="tool-group">
+          <legend>템플릿</legend>
+          <p id="active-template-label" class="template-active-label">불러온 템플릿 없음</p>
+          <div class="template-actions">
+            <button type="button" id="template-save-btn" class="template-btn template-btn-save">
+              템플릿으로 저장
+            </button>
+            <button type="button" id="template-update-btn" class="template-btn template-btn-update" disabled>
+              현재 템플릿 덮어쓰기(수정)
+            </button>
+            <button type="button" id="template-export-btn" class="template-btn template-btn-export">
+              템플릿 백업
+            </button>
+            <label class="template-btn template-btn-import" for="template-import-input">
+              템플릿 복원
+            </label>
+            <input
+              id="template-import-input"
+              type="file"
+              accept="application/json,.json"
+            />
+          </div>
+        </fieldset>
+      </section>
+
+      <section class="panel panel-preview" aria-label="미리보기">
+        <div class="preview-header">
+          <h2 class="panel-title">미리보기</h2>
+          <p id="canvas-size-label" class="canvas-size-label">1080 × 1080</p>
+        </div>
+        <div id="canvas-frame" class="canvas-frame" style="aspect-ratio: 1 / 1">
+          <canvas id="preview-canvas" width="1080" height="1080" aria-label="편집 미리보기 캔버스"></canvas>
+          <p id="canvas-placeholder" class="canvas-placeholder">
+            이미지를 업로드하면 여기에 미리보기가 표시됩니다
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <section class="panel panel-templates" aria-label="저장된 템플릿">
+      <div class="preview-header">
+        <h2 class="panel-title">저장된 템플릿</h2>
+        <p id="template-count-label" class="canvas-size-label">0개</p>
+      </div>
+      <ul id="template-list" class="template-list"></ul>
+      <p id="template-empty" class="template-empty">아직 저장된 템플릿이 없습니다. 편집 후 「템플릿으로 저장」을 눌러 주세요.</p>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
